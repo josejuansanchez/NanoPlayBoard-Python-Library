@@ -18,8 +18,29 @@ class RGB:
         data = [Constants.NPB_RGB_SET_COLOR, d1, d2, d3, d4]
         await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, data)
 
+    async def _on(self):
+        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, [Constants.NPB_RGB_ON])
+
+    async def _off(self):
+        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, [Constants.NPB_RGB_OFF])
+
+    async def _toggle(self):
+        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, [Constants.NPB_RGB_TOGGLE])
+
     def set_color(self, r, g, b):
         task = asyncio.ensure_future(self._set_color(r, g, b))
+        self.pymata3.loop.run_until_complete(task)
+
+    def on(self):
+        task = asyncio.ensure_future(self._on())
+        self.pymata3.loop.run_until_complete(task)
+
+    def off(self):
+        task = asyncio.ensure_future(self._off())
+        self.pymata3.loop.run_until_complete(task)
+
+    def toggle(self):
+        task = asyncio.ensure_future(self._toggle())
         self.pymata3.loop.run_until_complete(task)
 
 
