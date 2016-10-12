@@ -19,13 +19,16 @@ class RGB:
         await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, data)
 
     async def _on(self):
-        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, [Constants.NPB_RGB_ON])
+        data = [Constants.NPB_RGB_ON]
+        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, data)
 
     async def _off(self):
-        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, [Constants.NPB_RGB_OFF])
+        data = [Constants.NPB_RGB_OFF]
+        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, data)
 
     async def _toggle(self):
-        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, [Constants.NPB_RGB_TOGGLE])
+        data = [Constants.NPB_RGB_TOGGLE]
+        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, data)
 
     async def _set_intensity(self, intensity):
         data = [Constants.NPB_RGB_SET_INTENSITY, intensity & 0x7F]
@@ -52,8 +55,36 @@ class RGB:
         self.pymata3.loop.run_until_complete(task)
 
 
+class Buzzer:
+
+    def __init__(self, pymata3):
+        self.pymata3 = pymata3
+
+    async def _play_tone(self, frequency_hz, duration_ms):
+        f1 = frequency_hz & 0x7F
+        f2 = frequency_hz >> 7
+        d1 = duration_ms & 0x7F
+        d2 = duration_ms >> 7
+        data = [Constants.NPG_BUZZER_PLAY_TONE, f1, f2, d1, d2]
+        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, data)
+
+    async def _stop_tone(self):
+        data = [Constants.NPG_BUZZER_STOP_TONE]
+        await self.pymata3.core._send_sysex(Constants.NPB_COMMAND, data)
+
+    def play_tone(self, frequency_hz, duration_ms=0):
+        task = asyncio.ensure_future(
+            self._play_tone(frequency_hz, duration_ms))
+        self.pymata3.loop.run_until_complete(task)
+
+    def stop_tone(self):
+        task = asyncio.ensure_future(self._stop_tone())
+        self.pymata3.loop.run_until_complete(task)
+
+
 class NanoPlayBoard(PyMata3):
 
     def __init__(self):
         super().__init__()
         self.rgb = RGB(self)
+        self.buzzer = Buzzer(self)
