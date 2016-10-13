@@ -1,6 +1,6 @@
 
 class NanoConstants:
-    COMMAND                 = 0x40
+    COMMAND                 = 0x10
 
     BUZZER_PLAY_TONE        = 0x20
     BUZZER_STOP_TONE        = 0x21
