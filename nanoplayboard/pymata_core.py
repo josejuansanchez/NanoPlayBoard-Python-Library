@@ -35,7 +35,7 @@ from pymata_aio.private_constants import PrivateConstants
 from pymata_aio.pymata_serial import PymataSerial
 from pymata_aio.pymata_socket import PymataSocket
 
-from nanoplayboard.constants import NanoPlayBoardConstants
+from nanoplayboard.constants import NanoConstants
 
 # noinspection
 # PyCallingNonCallable,PyCallingNonCallable,PyPep8,PyBroadException,PyBroadException
@@ -130,8 +130,8 @@ class PymataCore:
                                        self._encoder_data,
                                    PrivateConstants.PIXY_DATA:
                                        self._pixy_data,
-                                   NanoPlayBoardConstants.POTENTIOMETER_READ:
-                                       self._npb_potentiometer_data}
+                                   NanoConstants.POTENTIOMETER_READ:
+                                       self._potentiometer_data}
 
         # report query results are stored in this dictionary
         self.query_reply_data = {PrivateConstants.REPORT_VERSION: '',
@@ -140,7 +140,7 @@ class PymataCore:
                                  PrivateConstants.CAPABILITY_RESPONSE: None,
                                  PrivateConstants.ANALOG_MAPPING_RESPONSE: None,
                                  PrivateConstants.PIN_STATE_RESPONSE: None,
-                                 NanoPlayBoardConstants.POTENTIOMETER_READ: None}
+                                 NanoConstants.POTENTIOMETER_READ: None}
 
         # An i2c_map entry consists of a device i2c address as the key, and
         #  the value of the key consists of a dictionary containing 3 entries.
@@ -1737,10 +1737,23 @@ class PymataCore:
         # Use struct unpack to convert to unsigned short value.
         return struct.unpack('<H', raw_bytes)[0]
 
-    async def _npb_potentiometer_data(self, data):
+    async def _potentiometer_read(self):
+        if self.query_reply_data.get(NanoConstants.POTENTIOMETER_READ) == None:
+            data = [NanoConstants.POTENTIOMETER_READ]
+            await self._send_sysex(NanoConstants.COMMAND, data)
+            while self.query_reply_data.get(
+                    NanoConstants.POTENTIOMETER_READ) == None:
+                await asyncio.sleep(self.sleep_tune)
+            value = self.query_reply_data.get(
+                NanoConstants.POTENTIOMETER_READ)
+            self.query_reply_data[
+                NanoConstants.POTENTIOMETER_READ] = None
+            return value
+
+    async def _potentiometer_data(self, data):
         pot_value = self._parse_firmata_uint16(data[3:-1])
         self.query_reply_data[
-            NanoPlayBoardConstants.POTENTIOMETER_READ] = pot_value
+            NanoConstants.POTENTIOMETER_READ] = pot_value
         if self._potentiometer_callback is not None:
             self._potentiometer_callback(pot_value)
 

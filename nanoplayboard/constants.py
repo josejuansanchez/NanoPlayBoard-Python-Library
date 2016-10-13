@@ -1,5 +1,5 @@
 
-class NanoPlayBoardConstants:
+class NanoConstants:
     COMMAND                 = 0x40
 
     BUZZER_PLAY_TONE        = 0x20
