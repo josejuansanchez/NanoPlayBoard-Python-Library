@@ -57,6 +57,13 @@ class Potentiometer:
         self.core._potentiometer_callback = callback
         return value
 
+    def scale_to(self, to_low, to_high, callback=None):
+        task = asyncio.ensure_future(
+            self.core._potentiometer_scale_to(to_low, to_high))
+        value = self.loop.run_until_complete(task)
+        self.core._potentiometer_callback = callback
+        return value
+
 
 class NanoPlayBoard:
 
