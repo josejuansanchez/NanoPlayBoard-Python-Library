@@ -139,7 +139,8 @@ class PymataCore:
                                  PrivateConstants.REPORT_FIRMWARE: '',
                                  PrivateConstants.CAPABILITY_RESPONSE: None,
                                  PrivateConstants.ANALOG_MAPPING_RESPONSE: None,
-                                 PrivateConstants.PIN_STATE_RESPONSE: None}
+                                 PrivateConstants.PIN_STATE_RESPONSE: None,
+                                 NanoPlayBoardConstants.POTENTIOMETER_READ: None}
 
         # An i2c_map entry consists of a device i2c address as the key, and
         #  the value of the key consists of a dictionary containing 3 entries.
@@ -1709,6 +1710,10 @@ class PymataCore:
         else:
             print(reply)
 
+    '''
+    NanoPlayBoard methods
+    '''
+
     def _parse_firmata_byte(self, data):
         """Parse a byte value from two 7-bit byte firmata response bytes."""
         if len(data) != 2:
@@ -1734,6 +1739,8 @@ class PymataCore:
 
     async def _npb_potentiometer_data(self, data):
         pot_value = self._parse_firmata_uint16(data[3:-1])
+        self.query_reply_data[
+            NanoPlayBoardConstants.POTENTIOMETER_READ] = pot_value
         if self._potentiometer_callback is not None:
             self._potentiometer_callback(pot_value)
 

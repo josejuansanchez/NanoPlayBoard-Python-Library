@@ -91,13 +91,23 @@ class Potentiometer:
         self.loop = loop
 
     async def _read(self):
-        data = [NanoPlayBoardConstants.POTENTIOMETER_READ]
-        await self.core._send_sysex(NanoPlayBoardConstants.COMMAND, data)
+        if self.core.query_reply_data.get(NanoPlayBoardConstants.POTENTIOMETER_READ) == None:
+            data = [NanoPlayBoardConstants.POTENTIOMETER_READ]
+            await self.core._send_sysex(NanoPlayBoardConstants.COMMAND, data)
+            while self.core.query_reply_data.get(
+                    NanoPlayBoardConstants.POTENTIOMETER_READ) == None:
+                await asyncio.sleep(self.core.sleep_tune)
+            value = self.core.query_reply_data.get(
+                NanoPlayBoardConstants.POTENTIOMETER_READ)
+            self.core.query_reply_data[
+                NanoPlayBoardConstants.POTENTIOMETER_READ] = None
+            return value
 
-    def read(self, callback):
+    def read(self, callback=None):
         task = asyncio.ensure_future(self._read())
-        self.loop.run_until_complete(task)
+        value = self.loop.run_until_complete(task)
         self.core._potentiometer_callback = callback
+        return value
 
 
 class NanoPlayBoard:
