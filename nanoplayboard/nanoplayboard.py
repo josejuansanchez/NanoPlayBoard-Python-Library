@@ -1,3 +1,23 @@
+""" 
+NanoPlayBoard class.
+
+This class is based on:
+  - pymata_core.py developed by Alan Yorinks.
+
+Copyright (c) 2015-16 Alan Yorinks All rights reserved.
+Copyright (C) 2016 Jose Juan Sanchez.  All rights reserved.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU  General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+"""
+
 import asyncio
 from nanoplayboard.nano_pymata_core import NanoPymataCore
 
@@ -65,6 +85,26 @@ class Potentiometer:
         return value
 
 
+class Ldr:
+
+    def __init__(self, core, loop):
+        self.core = core
+        self.loop = loop
+
+    def read(self, callback=None):
+        task = asyncio.ensure_future(self.core._ldr_read())
+        value = self.loop.run_until_complete(task)
+        self.core._ldr_callback = callback
+        return value
+
+    def scale_to(self, to_low, to_high, callback=None):
+        task = asyncio.ensure_future(
+            self.core._ldr_scale_to(to_low, to_high))
+        value = self.loop.run_until_complete(task)
+        self.core._ldr_callback = callback
+        return value
+
+
 class NanoPlayBoard:
 
     def __init__(self):
@@ -76,6 +116,7 @@ class NanoPlayBoard:
         self.rgb = RGB(self.core, self.loop)
         self.buzzer = Buzzer(self.core, self.loop)
         self.potentiometer = Potentiometer(self.core, self.loop)
+        self.ldr = Ldr(self.core, self.loop)
 
     def sleep(self, time):
         try:

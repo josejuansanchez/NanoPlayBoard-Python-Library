@@ -32,6 +32,8 @@ class NanoPymataCore(PymataCore):
     def __init__(self):
         super().__init__()
 
+        # this dictionary for mapping incoming Firmata message types to
+        # handlers for the messages
         self.command_dictionary = {PrivateConstants.REPORT_VERSION:
                                    self._report_version,
                                    PrivateConstants.REPORT_FIRMWARE:
@@ -67,9 +69,13 @@ class NanoPymataCore(PymataCore):
                                  PrivateConstants.ANALOG_MAPPING_RESPONSE: None,
                                  PrivateConstants.PIN_STATE_RESPONSE: None,
                                  NanoConstants.POTENTIOMETER_READ: None,
-                                 NanoConstants.POTENTIOMETER_SCALE_TO: None}
+                                 NanoConstants.POTENTIOMETER_SCALE_TO: None,
+                                 NanoConstants.LDR_READ: None,
+                                 NanoConstants.LDR_SCALE_TO: None}
 
+        # callbacks
         self._potentiometer_callback = None
+        self._ldr_callback = None
 
     '''
     Rgb led
@@ -128,6 +134,39 @@ class NanoPymataCore(PymataCore):
             self.query_reply_data[NanoConstants.POTENTIOMETER_SCALE_TO] = None
             return value
 
+    '''
+    Ldr
+    '''
+
+    async def _ldr_read(self):
+        if self.query_reply_data.get(NanoConstants.LDR_READ) == None:
+            data = [NanoConstants.LDR_READ]
+            await self._send_sysex(NanoConstants.COMMAND, data)
+            while self.query_reply_data.get(NanoConstants.LDR_READ) == None:
+                await asyncio.sleep(self.sleep_tune)
+            value = self.query_reply_data.get(NanoConstants.LDR_READ)
+            self.query_reply_data[NanoConstants.LDR_READ] = None
+            return value
+
+    async def _ldr_scale_to(self, to_low, to_high):
+        if self.query_reply_data.get(NanoConstants.LDR_SCALE_TO) == None:
+            l1 = to_low & 0x7F
+            l2 = to_low >> 7
+            h1 = to_high & 0x7F
+            h2 = to_high >> 7
+            data = [NanoConstants.LDR_SCALE_TO, l1, l2, h1, h2]
+            await self._send_sysex(NanoConstants.COMMAND, data)
+            while self.query_reply_data.get(NanoConstants.LDR_SCALE_TO) == None:
+                await asyncio.sleep(self.sleep_tune)
+            value = self.query_reply_data.get(
+                NanoConstants.LDR_SCALE_TO)
+            self.query_reply_data[NanoConstants.LDR_SCALE_TO] = None
+            return value
+
+    '''
+    Firmata responses
+    '''
+
     async def _nanoplayboard_response(self, data):
         if len(data) < 1:
             print("Received response with no data!")
@@ -139,6 +178,10 @@ class NanoPymataCore(PymataCore):
             self._potentiometer_read_response(data)
         elif command == NanoConstants.POTENTIOMETER_SCALE_TO:
             self._potentiometer_scale_to_response(data)
+        elif command == NanoConstants.LDR_READ:
+            self._ldr_read_response(data)
+        elif command == NanoConstants.LDR_SCALE_TO:
+            self._ldr_scale_to_response(data)
 
     def _potentiometer_read_response(self, data):
         pot_value = self._parse_firmata_uint16(data[3:-1])
@@ -151,6 +194,18 @@ class NanoPymataCore(PymataCore):
         self.query_reply_data[NanoConstants.POTENTIOMETER_SCALE_TO] = pot_value
         if self._potentiometer_callback is not None:
             self._potentiometer_callback(pot_value)
+
+    def _ldr_read_response(self, data):
+        ldr_value = self._parse_firmata_uint16(data[3:-1])
+        self.query_reply_data[NanoConstants.LDR_READ] = ldr_value
+        if self._ldr_callback is not None:
+            self._ldr_callback(ldr_value)
+
+    def _ldr_scale_to_response(self, data):
+        ldr_value = self._parse_firmata_uint16(data[3:-1])
+        self.query_reply_data[NanoConstants.LDR_SCALE_TO] = ldr_value
+        if self._ldr_callback is not None:
+            self._ldr_callback(ldr_value)
 
     '''
     Buzzer
