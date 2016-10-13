@@ -56,8 +56,8 @@ class NanoPymataCore(PymataCore):
                                        self._encoder_data,
                                    PrivateConstants.PIXY_DATA:
                                        self._pixy_data,
-                                   NanoConstants.POTENTIOMETER_READ:
-                                       self._potentiometer_data}
+                                   NanoConstants.COMMAND:
+                                       self._nanoplayboard_response}
 
         # report query results are stored in this dictionary
         self.query_reply_data = {PrivateConstants.REPORT_VERSION: '',
@@ -66,7 +66,8 @@ class NanoPymataCore(PymataCore):
                                  PrivateConstants.CAPABILITY_RESPONSE: None,
                                  PrivateConstants.ANALOG_MAPPING_RESPONSE: None,
                                  PrivateConstants.PIN_STATE_RESPONSE: None,
-                                 NanoConstants.POTENTIOMETER_READ: None}
+                                 NanoConstants.POTENTIOMETER_READ: None,
+                                 NanoConstants.POTENTIOMETER_SCALE_TO: None}
 
         self._potentiometer_callback = None
 
@@ -106,19 +107,48 @@ class NanoPymataCore(PymataCore):
         if self.query_reply_data.get(NanoConstants.POTENTIOMETER_READ) == None:
             data = [NanoConstants.POTENTIOMETER_READ]
             await self._send_sysex(NanoConstants.COMMAND, data)
-            while self.query_reply_data.get(
-                    NanoConstants.POTENTIOMETER_READ) == None:
+            while self.query_reply_data.get(NanoConstants.POTENTIOMETER_READ) == None:
                 await asyncio.sleep(self.sleep_tune)
-            value = self.query_reply_data.get(
-                NanoConstants.POTENTIOMETER_READ)
-            self.query_reply_data[
-                NanoConstants.POTENTIOMETER_READ] = None
+            value = self.query_reply_data.get(NanoConstants.POTENTIOMETER_READ)
+            self.query_reply_data[NanoConstants.POTENTIOMETER_READ] = None
             return value
 
-    async def _potentiometer_data(self, data):
+    async def _potentiometer_scale_to(self, to_low, to_high):
+        if self.query_reply_data.get(NanoConstants.POTENTIOMETER_SCALE_TO) == None:
+            l1 = to_low & 0x7F
+            l2 = to_low >> 7
+            h1 = to_high & 0x7F
+            h2 = to_high >> 7
+            data = [NanoConstants.POTENTIOMETER_SCALE_TO, l1, l2, h1, h2]
+            await self._send_sysex(NanoConstants.COMMAND, data)
+            while self.query_reply_data.get(NanoConstants.POTENTIOMETER_SCALE_TO) == None:
+                await asyncio.sleep(self.sleep_tune)
+            value = self.query_reply_data.get(
+                NanoConstants.POTENTIOMETER_SCALE_TO)
+            self.query_reply_data[NanoConstants.POTENTIOMETER_SCALE_TO] = None
+            return value
+
+    async def _nanoplayboard_response(self, data):
+        if len(data) < 1:
+            print("Received response with no data!")
+            return
+
+        command = data[1] & 0x7F
+
+        if command == NanoConstants.POTENTIOMETER_READ:
+            self._potentiometer_read_response(data)
+        elif command == NanoConstants.POTENTIOMETER_SCALE_TO:
+            self._potentiometer_scale_to_response(data)
+
+    def _potentiometer_read_response(self, data):
         pot_value = self._parse_firmata_uint16(data[3:-1])
-        self.query_reply_data[
-            NanoConstants.POTENTIOMETER_READ] = pot_value
+        self.query_reply_data[NanoConstants.POTENTIOMETER_READ] = pot_value
+        if self._potentiometer_callback is not None:
+            self._potentiometer_callback(pot_value)
+
+    def _potentiometer_scale_to_response(self, data):
+        pot_value = self._parse_firmata_uint16(data[3:-1])
+        self.query_reply_data[NanoConstants.POTENTIOMETER_SCALE_TO] = pot_value
         if self._potentiometer_callback is not None:
             self._potentiometer_callback(pot_value)
 
