@@ -78,6 +78,22 @@ class NanoPymataCore(PymataCore):
         self._ldr_callback = None
 
     '''
+    Buzzer
+    '''
+
+    async def _buzzer_play_tone(self, frequency_hz, duration_ms):
+        f1 = frequency_hz & 0x7F
+        f2 = frequency_hz >> 7
+        d1 = duration_ms & 0x7F
+        d2 = duration_ms >> 7
+        data = [NanoConstants.BUZZER_PLAY_TONE, f1, f2, d1, d2]
+        await self._send_sysex(NanoConstants.COMMAND, data)
+
+    async def _buzzer_stop_tone(self):
+        data = [NanoConstants.BUZZER_STOP_TONE]
+        await self._send_sysex(NanoConstants.COMMAND, data)
+
+    '''
     Rgb led
     '''
 
@@ -164,6 +180,28 @@ class NanoPymataCore(PymataCore):
             return value
 
     '''
+    LedMatrix
+    '''
+
+    async def _ledmatrix_print_pattern(self, pattern):
+        pattern[0] &= 0x7F
+        pattern[1] &= 0x7F
+        pattern[2] &= 0x7F
+        pattern[3] &= 0x7F
+        pattern[4] &= 0x7F
+        data = [NanoConstants.LEDMATRIX_PRINT_PATTERN,
+                pattern[0], pattern[1], pattern[2], pattern[3], pattern[4]]
+        await self._send_sysex(NanoConstants.COMMAND, data)
+
+    async def _ledmatrix_print_in_landscape(self, number):
+        data = [NanoConstants.LEDMATRIX_PRINT_IN_LAND, number & 0x7F]
+        await self._send_sysex(NanoConstants.COMMAND, data)
+
+    async def _ledmatrix_print_char(self, symbol):
+        data = [NanoConstants.LEDMATRIX_PRINT_CHAR, ord(symbol) & 0x7F]
+        await self._send_sysex(NanoConstants.COMMAND, data)
+
+    '''
     Firmata responses
     '''
 
@@ -206,22 +244,6 @@ class NanoPymataCore(PymataCore):
         self.query_reply_data[NanoConstants.LDR_SCALE_TO] = ldr_value
         if self._ldr_callback is not None:
             self._ldr_callback(ldr_value)
-
-    '''
-    Buzzer
-    '''
-
-    async def _buzzer_play_tone(self, frequency_hz, duration_ms):
-        f1 = frequency_hz & 0x7F
-        f2 = frequency_hz >> 7
-        d1 = duration_ms & 0x7F
-        d2 = duration_ms >> 7
-        data = [NanoConstants.BUZZER_PLAY_TONE, f1, f2, d1, d2]
-        await self._send_sysex(NanoConstants.COMMAND, data)
-
-    async def _buzzer_stop_tone(self):
-        data = [NanoConstants.BUZZER_STOP_TONE]
-        await self._send_sysex(NanoConstants.COMMAND, data)
 
     '''
     Utilities

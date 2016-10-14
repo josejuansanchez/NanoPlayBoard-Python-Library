@@ -105,6 +105,28 @@ class Ldr:
         return value
 
 
+class LedMatrix:
+
+    def __init__(self, core, loop):
+        self.core = core
+        self.loop = loop
+
+    def print_pattern(self, pattern):
+        task = asyncio.ensure_future(
+            self.core._ledmatrix_print_pattern(pattern))
+        self.loop.run_until_complete(task)
+
+    def print_in_landscape(self, number):
+        task = asyncio.ensure_future(
+            self.core._ledmatrix_print_in_landscape(number))
+        self.loop.run_until_complete(task)
+
+    def print_char(self, symbol):
+        task = asyncio.ensure_future(
+            self.core._ledmatrix_print_char(symbol))
+        self.loop.run_until_complete(task)
+
+
 class NanoPlayBoard:
 
     def __init__(self):
@@ -117,6 +139,7 @@ class NanoPlayBoard:
         self.buzzer = Buzzer(self.core, self.loop)
         self.potentiometer = Potentiometer(self.core, self.loop)
         self.ldr = Ldr(self.core, self.loop)
+        self.ledmatrix = LedMatrix(self.core, self.loop)
 
     def sleep(self, time):
         try:
