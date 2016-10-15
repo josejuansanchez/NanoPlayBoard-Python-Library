@@ -21,3 +21,5 @@ class NanoConstants:
     LEDMATRIX_PRINT_PATTERN = 0x61
     LEDMATRIX_PRINT_STRING  = 0x62
     LEDMATRIX_PRINT_IN_LAND = 0x63
+
+    SERVO_TO                = 0x70

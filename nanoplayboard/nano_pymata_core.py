@@ -202,6 +202,17 @@ class NanoPymataCore(PymataCore):
         await self._send_sysex(NanoConstants.COMMAND, data)
 
     '''
+    Servo
+    '''
+
+    async def _servo_to(self, id, degrees):
+        d1 = degrees & 0x7F
+        d2 = degrees >> 7
+        data = [NanoConstants.SERVO_TO, d1, d2]
+        #data = [NanoConstants.SERVO_TO, id & 0x7F, degrees & 0x7F]
+        await self._send_sysex(NanoConstants.COMMAND, data)
+
+    '''
     Firmata responses
     '''
 

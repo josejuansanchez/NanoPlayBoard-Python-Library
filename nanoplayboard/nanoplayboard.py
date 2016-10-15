@@ -20,6 +20,7 @@ General Public License for more details.
 
 import asyncio
 from nanoplayboard.nano_pymata_core import NanoPymataCore
+from functools import singledispatch
 
 
 class RGB:
@@ -127,6 +128,18 @@ class LedMatrix:
         self.loop.run_until_complete(task)
 
 
+class NanoServo:
+
+    def __init__(self, core, loop):
+        self.core = core
+        self.loop = loop
+
+    def to(self, id, degrees):
+        task = asyncio.ensure_future(
+            self.core._servo_to(id, degrees))
+        self.loop.run_until_complete(task)
+
+
 class NanoPlayBoard:
 
     def __init__(self):
@@ -140,6 +153,7 @@ class NanoPlayBoard:
         self.potentiometer = Potentiometer(self.core, self.loop)
         self.ldr = Ldr(self.core, self.loop)
         self.ledmatrix = LedMatrix(self.core, self.loop)
+        self.servo = [NanoServo(self.core, self.loop)] * 2
 
     def sleep(self, time):
         try:
