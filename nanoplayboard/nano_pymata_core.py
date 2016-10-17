@@ -208,10 +208,10 @@ class NanoPymataCore(PymataCore):
     '''
 
     async def _servo_to(self, id, degrees):
+        id = id & 0x7F
         d1 = degrees & 0x7F
         d2 = degrees >> 7
-        data = [NanoConstants.SERVO_TO, d1, d2]
-        #data = [NanoConstants.SERVO_TO, id & 0x7F, degrees & 0x7F]
+        data = [NanoConstants.SERVO_TO, id, d1, d2]
         await self._send_sysex(NanoConstants.COMMAND, data)
 
     '''
@@ -284,3 +284,19 @@ class NanoPymataCore(PymataCore):
             raw_bytes[i] = self._parse_firmata_byte(data[i * 2:i * 2 + 2])
         # Use struct unpack to convert to unsigned short value.
         return struct.unpack('<H', raw_bytes)[0]
+
+    def _parse_firmata_long(self, data):
+        """Parse a 4 byte signed long integer value from a 7-bit byte firmata response
+        byte array.  Each pair of firmata 7-bit response bytes represents a single
+        byte of long data so there should be 8 firmata response bytes total.
+        """
+        if len(data) != 8:
+            raise ValueError('Expected 8 bytes of firmata response for long value!')
+        # Convert 2 7-bit bytes in little endian format to 1 8-bit byte for each
+        # of the four long bytes.
+        raw_bytes = bytearray(4)
+        for i in range(4):
+            raw_bytes[i] = self._parse_firmata_byte(data[i*2:i*2+2])
+        # Use struct unpack to convert to long value.
+        return struct.unpack('<l', raw_bytes)[0]
+
