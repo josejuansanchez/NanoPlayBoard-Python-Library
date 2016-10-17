@@ -184,9 +184,9 @@ class NanoPymataCore(PymataCore):
     '''
 
     async def _ledmatrix_print_pattern(self, pattern):
-        pattern = [p & 0x7F for p in pattern]
-        data = [NanoConstants.LEDMATRIX_PRINT_PATTERN,
-                pattern[0], pattern[1], pattern[2], pattern[3], pattern[4]]
+        data = [NanoConstants.LEDMATRIX_PRINT_PATTERN]
+        for p in pattern:
+            data.append(p & 0x7F)
         await self._send_sysex(NanoConstants.COMMAND, data)
 
     async def _ledmatrix_print_in_landscape(self, number):
