@@ -184,11 +184,7 @@ class NanoPymataCore(PymataCore):
     '''
 
     async def _ledmatrix_print_pattern(self, pattern):
-        pattern[0] &= 0x7F
-        pattern[1] &= 0x7F
-        pattern[2] &= 0x7F
-        pattern[3] &= 0x7F
-        pattern[4] &= 0x7F
+        pattern = [p & 0x7F for p in pattern]
         data = [NanoConstants.LEDMATRIX_PRINT_PATTERN,
                 pattern[0], pattern[1], pattern[2], pattern[3], pattern[4]]
         await self._send_sysex(NanoConstants.COMMAND, data)
@@ -199,6 +195,12 @@ class NanoPymataCore(PymataCore):
 
     async def _ledmatrix_print_char(self, symbol):
         data = [NanoConstants.LEDMATRIX_PRINT_CHAR, ord(symbol) & 0x7F]
+        await self._send_sysex(NanoConstants.COMMAND, data)
+
+    async def _ledmatrix_print_message(self, message):
+        data = [NanoConstants.LEDMATRIX_PRINT_STRING, len(message) & 0x7F]
+        for symbol in message:
+            data.append(ord(symbol) & 0x7F)
         await self._send_sysex(NanoConstants.COMMAND, data)
 
     '''

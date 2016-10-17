@@ -127,6 +127,11 @@ class LedMatrix:
             self.core._ledmatrix_print_char(symbol))
         self.loop.run_until_complete(task)
 
+    def print_message(self, message):
+        task = asyncio.ensure_future(
+            self.core._ledmatrix_print_message(message))
+        self.loop.run_until_complete(task)
+
 
 class NanoServo:
 
