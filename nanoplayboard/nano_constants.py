@@ -23,3 +23,5 @@ class NanoConstants:
     LEDMATRIX_PRINT_IN_LAND = 0x63
 
     SERVO_TO                = 0x70
+
+    ROTARY_ENCODER_READ     = 0x80

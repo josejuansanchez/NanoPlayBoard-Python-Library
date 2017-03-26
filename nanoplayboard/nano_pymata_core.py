@@ -71,11 +71,13 @@ class NanoPymataCore(PymataCore):
                                  NanoConstants.POTENTIOMETER_READ: None,
                                  NanoConstants.POTENTIOMETER_SCALE_TO: None,
                                  NanoConstants.LDR_READ: None,
-                                 NanoConstants.LDR_SCALE_TO: None}
+                                 NanoConstants.LDR_SCALE_TO: None,
+                                 NanoConstants.ROTARY_ENCODER_READ: None}
 
         # callbacks
         self._potentiometer_callback = None
         self._ldr_callback = None
+        self._rotary_encoder_callback = None
 
     '''
     Buzzer
@@ -215,6 +217,20 @@ class NanoPymataCore(PymataCore):
         await self._send_sysex(NanoConstants.COMMAND, data)
 
     '''
+    RotaryEncoder
+    '''
+
+    async def _rotary_encoder_get_position(self):
+        if self.query_reply_data.get(NanoConstants.ROTARY_ENCODER_READ) == None:
+            data = [NanoConstants.ROTARY_ENCODER_READ]
+            await self._send_sysex(NanoConstants.COMMAND, data)
+            while self.query_reply_data.get(NanoConstants.ROTARY_ENCODER_READ) == None:
+                await asyncio.sleep(self.sleep_tune)
+            value = self.query_reply_data.get(NanoConstants.ROTARY_ENCODER_READ)
+            self.query_reply_data[NanoConstants.ROTARY_ENCODER_READ] = None
+            return value
+
+    '''
     Firmata responses
     '''
 
@@ -291,12 +307,12 @@ class NanoPymataCore(PymataCore):
         byte of long data so there should be 8 firmata response bytes total.
         """
         if len(data) != 8:
-            raise ValueError('Expected 8 bytes of firmata response for long value!')
+            raise ValueError(
+                'Expected 8 bytes of firmata response for long value!')
         # Convert 2 7-bit bytes in little endian format to 1 8-bit byte for each
         # of the four long bytes.
         raw_bytes = bytearray(4)
         for i in range(4):
-            raw_bytes[i] = self._parse_firmata_byte(data[i*2:i*2+2])
+            raw_bytes[i] = self._parse_firmata_byte(data[i * 2:i * 2 + 2])
         # Use struct unpack to convert to long value.
         return struct.unpack('<l', raw_bytes)[0]
-

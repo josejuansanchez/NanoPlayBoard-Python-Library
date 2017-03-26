@@ -145,6 +145,19 @@ class NanoServo:
         self.loop.run_until_complete(task)
 
 
+class RotaryEncoder:
+
+    def __init__(self, core, loop):
+        self.core = core
+        self.loop = loop
+
+    def read(self, callback=None):
+        task = asyncio.ensure_future(self.core._rotary_encoder_get_position())
+        value = self.loop.run_until_complete(task)
+        self.core._rotary_encoder_callback = callback
+        return value
+
+
 class NanoPlayBoard:
 
     def __init__(self):
