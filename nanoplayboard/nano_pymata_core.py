@@ -72,12 +72,14 @@ class NanoPymataCore(PymataCore):
                                  NanoConstants.POTENTIOMETER_SCALE_TO: None,
                                  NanoConstants.LDR_READ: None,
                                  NanoConstants.LDR_SCALE_TO: None,
-                                 NanoConstants.ROTARY_ENCODER_READ: None}
+                                 NanoConstants.ROTARY_ENCODER_READ: None,
+                                 NanoConstants.ULTRASOUND_READ: None}
 
         # callbacks
         self._potentiometer_callback = None
         self._ldr_callback = None
         self._rotary_encoder_callback = None
+        self._ultrasound_callback = None
 
     '''
     Buzzer
@@ -231,6 +233,21 @@ class NanoPymataCore(PymataCore):
             return value
 
     '''
+    Ultrasound
+    '''
+
+    async def _ultrasound_read(self):
+        if self.query_reply_data.get(NanoConstants.ULTRASOUND_READ) == None:
+            data = [NanoConstants.ULTRASOUND_READ]
+            await self._send_sysex(NanoConstants.COMMAND, data)
+            while self.query_reply_data.get(NanoConstants.ULTRASOUND_READ) == None:
+                await asyncio.sleep(self.sleep_tune)
+            value = self.query_reply_data.get(NanoConstants.ULTRASOUND_READ)
+            self.query_reply_data[NanoConstants.ULTRASOUND_READ] = None
+            return value
+
+
+    '''
     Firmata responses
     '''
 
@@ -249,6 +266,8 @@ class NanoPymataCore(PymataCore):
             self._ldr_read_response(data)
         elif command == NanoConstants.LDR_SCALE_TO:
             self._ldr_scale_to_response(data)
+        elif command == NanoConstants.ULTRASOUND_READ:
+            self._ultrasound_read_response(data)
 
     def _potentiometer_read_response(self, data):
         pot_value = self._parse_firmata_uint16(data[3:-1])
@@ -273,6 +292,12 @@ class NanoPymataCore(PymataCore):
         self.query_reply_data[NanoConstants.LDR_SCALE_TO] = ldr_value
         if self._ldr_callback is not None:
             self._ldr_callback(ldr_value)
+
+    def _ultrasound_read_response(self, data):
+        ultrasound_value = self._parse_firmata_uint16(data[3:-1])
+        self.query_reply_data[NanoConstants.ULTRASOUND_READ] = ultrasound_value
+        if self._ultrasound_callback is not None:
+            self._ultrasound_callback(ultrasound_value)
 
     '''
     Utilities

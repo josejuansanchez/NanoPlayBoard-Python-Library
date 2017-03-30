@@ -157,6 +157,17 @@ class RotaryEncoder:
         self.core._rotary_encoder_callback = callback
         return value
 
+class Ultrasound:
+
+    def __init__(self, core, loop):
+        self.core = core
+        self.loop = loop
+
+    def read(self, callback=None):
+        task = asyncio.ensure_future(self.core._ultrasound_read())
+        value = self.loop.run_until_complete(task)
+        self.core._ultrasound_callback = callback
+        return value
 
 class NanoPlayBoard:
 
@@ -172,6 +183,7 @@ class NanoPlayBoard:
         self.ldr = Ldr(self.core, self.loop)
         self.ledmatrix = LedMatrix(self.core, self.loop)
         self.servo = [NanoServo(self.core, self.loop)] * 2
+        self.ultrasound = Ultrasound(self.core, self.loop)
 
     def sleep(self, time):
         try:
