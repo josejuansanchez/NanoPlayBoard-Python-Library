@@ -193,8 +193,8 @@ class NanoPymataCore(PymataCore):
             data.append(p & 0x7F)
         await self._send_sysex(NanoConstants.COMMAND, data)
 
-    async def _ledmatrix_print_in_landscape(self, number):
-        data = [NanoConstants.LEDMATRIX_PRINT_IN_LAND, number & 0x7F]
+    async def _ledmatrix_print_number(self, number):
+        data = [NanoConstants.LEDMATRIX_PRINT_NUMBER, number & 0x7F]
         await self._send_sysex(NanoConstants.COMMAND, data)
 
     async def _ledmatrix_print_char(self, symbol):

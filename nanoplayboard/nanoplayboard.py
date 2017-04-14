@@ -117,9 +117,9 @@ class LedMatrix:
             self.core._ledmatrix_print_pattern(pattern))
         self.loop.run_until_complete(task)
 
-    def print_in_landscape(self, number):
+    def print_number(self, number):
         task = asyncio.ensure_future(
-            self.core._ledmatrix_print_in_landscape(number))
+            self.core._ledmatrix_print_number(number))
         self.loop.run_until_complete(task)
 
     def print_char(self, symbol):
