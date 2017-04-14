@@ -184,6 +184,7 @@ class NanoPlayBoard:
         self.ledmatrix = LedMatrix(self.core, self.loop)
         self.servo = [NanoServo(self.core, self.loop)] * 2
         self.ultrasound = Ultrasound(self.core, self.loop)
+        self.rotaryencoder = RotaryEncoder(self.core, self.loop)
 
     def sleep(self, time):
         try:
