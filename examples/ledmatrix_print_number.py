@@ -6,7 +6,7 @@ board = NanoPlayBoard()
 
 def loop():
     for number in range(0, 100):
-        board.ledmatrix.print_in_landscape(number)
+        board.ledmatrix.print_number(number)
         board.sleep(0.020)
 
 if __name__ == "__main__":
