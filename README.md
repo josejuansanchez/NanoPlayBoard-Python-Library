@@ -27,6 +27,12 @@ board.rgb.on()
 
 You can take a look at the examples folder to see how it works.
 
+## Example
+
+Very basic example about how to control the NanoPlayBoard RGB led using the Python library.
+
+![rgb][example-rgb]
+
 ## Credits
 
 `NanoPyMataCore` class is based on:
@@ -59,3 +65,5 @@ limitations under the License.
 [6]: https://github.com/MrYsLab
 [7]: https://github.com/adafruit/CircuitPlaygroundFirmata/blob/master/Python%20Examples/circuitplayground.py
 [8]: https://github.com/tdicola
+
+[example-rgb]: https://github.com/josejuansanchez/NanoPlayBoard-Python-Library/blob/master/extras/example-rgb.gif
