@@ -1,5 +1,5 @@
 # NanoPlayBoard-Python-Library
-A Python Library for [NanoPlayBoard Firmata][1]. With this library you can interact your [NanoPlayBoard][2] writing Python code. It runs on Python 3.
+A Python Library for [NanoPlayBoard Firmata][1]. Using this library you can interact with your [NanoPlayBoard][2] writing Python code. It runs on Python 3.
 
 ## Installation
 
